@@ -1,0 +1,17 @@
+[tool.poetry]
+name = "ai-test"
+version = "0.1.0"
+description = ""
+authors = ["wd Yang <wdyang97@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+scikit-learn = "^1.5.2"
+streamlit = "^1.41.1"
+boto3 = "^1.35.82"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
