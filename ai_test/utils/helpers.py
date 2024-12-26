@@ -15,7 +15,7 @@ def display_metrics(st, metric):
         st.metric("Recall", metric[2])
     with col3:
         st.metric("IOU", "-")
-        st.metric("mAP50", "-")
+        st.metric("mAP50", metric[4])
 
 
 def display_results(st, results, s3_prefix):

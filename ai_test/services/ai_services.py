@@ -1,11 +1,12 @@
 import os
 import zipfile
+import torch
 import numpy as np
 import requests
 import tempfile
 
 from constant import cfg
-from utils.measurement import calculate_metrics
+from utils.measurement import calculate_metrics_by_bboxs
 
 session = requests.session()
 
@@ -90,25 +91,63 @@ def avg_metric(metric):
     return round(np.average(metric), 2)
 
 
+def remap_labels(labels, mapping):
+    """Remap labels according to the provided mapping dictionary."""
+    return [mapping[label] if label in mapping else label for label in labels]
+
+
+def remove_duplicates(data):
+  """
+  Removes duplicate dictionaries from a list of dictionaries based on 'image_name'.
+
+  Args:
+    data: A list of dictionaries, where each dictionary has keys like 'image_name', 'boxes', 'scores', 'labels'.
+
+  Returns:
+    A new list of dictionaries with duplicates removed.
+  """
+  seen = set()
+  result = []
+  for item in data:
+    if item['image_name'] not in seen:
+      seen.add(item['image_name'])
+      result.append(item)
+  return result
+
+
 def model_metrics(data_file, label_file):
     predictions = validation_model_api(data_file)
+    predictions = remove_duplicates(predictions)
     labels = process_label(label_file)
     avg_accuracy = []
     avg_precision = []
     avg_recall = []
     avg_f1_score = []
-
+    avg_map50 = []
     for predict in predictions:
         name = predict['image_name']
         label = labels[name.replace("jpg", 'txt')]["labels"]
+        label = remap_labels(label, cfg.DATA_LABEL_MAPPING)
         predict_lb = predict["labels"]
         predict['ground_truth'] = label
         predict['g_boxes'] = labels[name.replace("jpg", 'txt')]["boxes"]
-        metric = calculate_metrics(label, predict_lb, predict['boxes'], predict['g_boxes'])
+        pred_boxes = torch.tensor(predict['boxes'])
+        pred_scores = torch.tensor(predict['scores'])
+        pred_labels = torch.tensor(predict_lb)
+        gt_boxes = torch.tensor(predict['g_boxes'])
+        gt_labels = torch.tensor(label)
+        iou_th = cfg.IOU_THRESHOLD
+        names = cfg.AI_CONFIG
+        map50, ap, class_id, p, r, f1 = calculate_metrics_by_bboxs(pred_boxes, pred_scores, pred_labels, gt_boxes,
+                                                                   gt_labels, iou_th, names)
+        metric = {"accuracy": ap.mean(), "precision": p.mean(), 'recall': r.mean(), 'f1-Score': f1.mean()}
         predict.update(metric)
         avg_accuracy.append(metric['accuracy'])
         avg_precision.append(metric['precision'])
         avg_recall.append(metric['recall'])
         avg_f1_score.append(metric['f1-Score'])
+        avg_map50.append(map50)
+
     return format_inp(predictions), (
-        avg_metric(avg_accuracy), avg_metric(avg_precision), avg_metric(avg_recall), avg_metric(avg_f1_score))
+        avg_metric(avg_accuracy), avg_metric(avg_precision), avg_metric(avg_recall), avg_metric(avg_f1_score),
+        avg_metric(avg_map50))
