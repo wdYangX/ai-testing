@@ -17,6 +17,7 @@ RUN pip install poetry && \
     poetry config virtualenvs.create false && \
     poetry install --no-dev
 # copy project
+RUN apt-get update && apt-get install ffmpeg libsm6 libxext6  -y
 COPY . $APPLICATION_SERVICE
 
 

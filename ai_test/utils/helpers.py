@@ -25,8 +25,9 @@ def display_results(st, results, s3_prefix):
     url = urllib.parse.urljoin(cfg.S3_ENDPOINT.rstrip("/") + "/", cfg.BUCKET_NAME.lstrip("/") + "/")
     url = urllib.parse.urljoin(url, s3_prefix.lstrip("/") + "/")
     # Prepare DataFrame for display
+    out_file = 'latest_result.csv'
     data_df['view'] = data_df['image_name'].apply(lambda x: urllib.parse.urljoin(url, x))
-    data_df.to_csv('latest_result.csv')
+    data_df.to_csv(out_file)
 
     data_df = data_df[['image_name', 'view'] + [col for col in data_df.columns if col not in ['image_name', 'view']]]
     del data_df['scores']
@@ -39,8 +40,3 @@ def display_results(st, results, s3_prefix):
     st.data_editor(data_df, column_config={
         "view": st.column_config.ImageColumn("Preview Image", help="Streamlit app preview screenshots", )},
                    hide_index=False, )
-
-
-def display_export_button(st, filename="results.csv"):
-    """Displays a button to download results in CSV format."""
-    st.download_button("Export Results", "Exported data in CSV format", file_name=filename)

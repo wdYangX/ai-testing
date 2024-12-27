@@ -3,7 +3,7 @@ class BaseConstant:
     ACCESS_KEY = '6nVgb14aldZFzAcKWCpL'
     SECRET_KEY = 'iHDHK35yhHgnWADfXejsEzySUqKi7KXcczN0zMDn'
     BUCKET_NAME = 'ai-testing'
-    S3_ENDPOINT = 'http://localhost:9000'
+    S3_ENDPOINT = 'http://minio:9000'
     IOU_THRESHOLD = 0.5
     AI_CONFIG = {0: "Forklift",
                  1: "Hand pallet jack",

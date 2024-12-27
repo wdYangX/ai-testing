@@ -1,7 +1,7 @@
 from services.ai_services import model_metrics
 from utils.extract_zip import extract_zip
 from constant import cfg
-from utils.helpers import display_metrics, display_results, display_export_button
+from utils.helpers import display_metrics, display_results
 
 
 def render_test_model(st):
@@ -23,7 +23,6 @@ def render_test_model(st):
                 display_metrics(st, metric)
                 st.write("#### Detailed Results")
                 display_results(st, output, file_pth)
-                display_export_button(st, "model_results.csv")
                 st.success("Validation completed!")
         else:
             st.error('Invalid Input')
